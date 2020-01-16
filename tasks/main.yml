@@ -1,0 +1,70 @@
+---
+# tasks file for jenkins-node
+
+- name: create group
+  become: yes
+  group:
+    name: "{{ jenkins_node_user }}"
+    state: present
+
+- name: create user
+  become: yes
+  vars:
+    # For whatever reason, passing a vaulted variable into the password_hash filter causes ansible to throw an error.
+    # You must assign the vaulted variable to another variable first, then it will work properly with password_hash.
+    unvaulted_jenkins_node_user_password: "{{ jenkins_node_user_password }}"
+  user:
+    name: "{{ jenkins_node_user }}"
+    shell: /bin/bash
+    generate_ssh_key: yes
+    ssh_key_bits: 4096
+    groups: "{{ jenkins_node_user_groups }}"
+    password: "{{ unvaulted_jenkins_node_user_password | password_hash('sha512') }}"
+
+- name: add {{ ansible_user_id }} user to {{ jenkins_node_user }} group
+  become: yes
+  user:
+    name: "{{ ansible_user_id }}"
+    groups: "{{ jenkins_node_user }}"
+    append: yes
+
+- name: create jenkins folder for workspaces
+  become: yes
+  file:
+    path: "{{ jenkins_node_path }}"
+    owner: "{{ jenkins_node_user }}"
+    group: "{{ jenkins_node_user }}"
+    mode: 0774
+    state: directory
+
+- name: install Java OpenJDK {{ jenkins_node_java_openjdk_version }}
+  become: yes
+  yum:
+    # https://www.digitalocean.com/community/tutorials/how-to-install-java-on-centos-and-fedora
+    # To install the JDK, you have to install java-###-openjdk-devel. Without the devel, you just get the JRE,
+    # despite the VERY misleading name.
+    name: java-{{ jenkins_node_java_openjdk_version }}-openjdk-devel
+    state: latest
+
+- name: install python-jenkins
+  become: yes
+  pip:
+    name: python-jenkins
+    state: latest
+
+- name: copy node creation script
+  become: yes
+  copy:
+    src: create_jenkins_node_ssh.py
+    dest: "{{ jenkins_node_path }}/create_jenkins_node_ssh.py"
+    owner: "{{ jenkins_node_user }}"
+    group: "{{ jenkins_node_user }}"
+    mode: 0744
+
+- name: add the node to the jenkins master
+  become: yes
+  command: python {{ jenkins_node_path }}/create_jenkins_node_ssh.py "{{ jenkins_node_master_url }}" "{{ jenkins_node_master_user }}" "{{ jenkins_node_master_password }}" "{{ jenkins_node_credential }}" "{{ jenkins_node_name }}" "{{ jenkins_node_description }}" "{{ jenkins_node_labels }}" "{{ jenkins_node_host }}" "--num-executors={{ jenkins_node_executors }}" "--path={{ jenkins_node_path }}" "--port={{ jenkins_node_port }}" "--ca-cert={{ jenkins_node_master_ca_cert }}"
+  # As of 2017-10-2, Ansible doesn't keep track what values were vaulted. Without no_log, an error would
+  # cause the command to be displayed, which is not desirable.
+  # 2019-12-02: You have two options. Use 'no_log: yes' or use a Jenkins credential object so Jenkins masks the output. I have opted for Jenkins to mask the output
+  # as this is a command that fails often, and I'm tired of having to run the command by hand and removing no_log so I can see the output.
