@@ -37,14 +37,47 @@
     mode: 0774
     state: directory
 
-- name: install Java OpenJDK {{ jenkins_node_java_openjdk_version }}
+- name: install openjdk{{ jenkins_node_openjdk_major_version }} latest
   become: yes
   yum:
     # https://www.digitalocean.com/community/tutorials/how-to-install-java-on-centos-and-fedora
     # To install the JDK, you have to install java-###-openjdk-devel. Without the devel, you just get the JRE,
     # despite the VERY misleading name.
-    name: java-{{ jenkins_node_java_openjdk_version }}-openjdk-devel
+    name: "java-{{ jenkins_node_openjdk_major_version }}-openjdk-devel"
     state: latest
+  when: jenkins_node_openjdk_full_version == "latest"
+
+# https://access.redhat.com/solutions/98873
+- name: install versionlock
+  become: yes
+  yum:
+    name: yum-plugin-versionlock
+    state: latest
+  when: jenkins_node_openjdk_full_version != "latest"
+
+# Gotta let the package install/upgrade/downgrade if needed as the target version may have changed.
+# The version lock is needed soley so a system wide yum update won't change the version of java.
+- name: remove the version lock
+  become: yes
+  lineinfile:
+    path: /etc/yum/pluginconf.d/versionlock.list
+    state: absent
+    line: "1:java-{{ jenkins_node_openjdk_major_version }}-openjdk-devel-*"
+
+- name: install java-{{ jenkins_node_openjdk_major_version }}-openjdk-devel-{{ jenkins_node_openjdk_full_version }}
+  become: yes
+  yum:
+    name: "java-{{ jenkins_node_openjdk_major_version }}-openjdk-devel-{{ jenkins_node_openjdk_full_version }}"
+    state: present
+    allow_downgrade: yes
+  when: jenkins_node_openjdk_full_version != "latest"
+
+- name: add the version lock back in
+  become: yes
+  lineinfile:
+    path: /etc/yum/pluginconf.d/versionlock.list
+    state: present
+    line: "1:java-{{ jenkins_node_openjdk_major_version }}-openjdk-devel-*"
 
 - name: install python-jenkins
   become: yes
