@@ -62,12 +62,15 @@
   lineinfile:
     path: /etc/yum/pluginconf.d/versionlock.list
     state: absent
-    line: "1:java-{{ jenkins_node_openjdk_major_version }}-openjdk-devel-*"
+    line: "1:java-{{ jenkins_node_openjdk_major_version }}-openjdk-*"
 
-- name: install java-{{ jenkins_node_openjdk_major_version }}-openjdk-devel-{{ jenkins_node_openjdk_full_version }}
+- name: install locked java version
   become: yes
   yum:
-    name: "java-{{ jenkins_node_openjdk_major_version }}-openjdk-devel-{{ jenkins_node_openjdk_full_version }}"
+    name:
+      - "java-{{ jenkins_node_openjdk_major_version }}-openjdk-{{ jenkins_node_openjdk_full_version }}"
+      - "java-{{ jenkins_node_openjdk_major_version }}-openjdk-headless-{{ jenkins_node_openjdk_full_version }}"
+      - "java-{{ jenkins_node_openjdk_major_version }}-openjdk-devel-{{ jenkins_node_openjdk_full_version }}"
     state: present
     allow_downgrade: yes
   when: jenkins_node_openjdk_full_version != "latest"
@@ -77,7 +80,7 @@
   lineinfile:
     path: /etc/yum/pluginconf.d/versionlock.list
     state: present
-    line: "1:java-{{ jenkins_node_openjdk_major_version }}-openjdk-devel-*"
+    line: "1:java-{{ jenkins_node_openjdk_major_version }}-openjdk-*"
 
 - name: install python-jenkins
   become: yes
