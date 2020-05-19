@@ -6,9 +6,10 @@ jenkins_node_description: ""
 jenkins_node_executors: 1
 jenkins_node_labels: "{{ inventory_hostname }}"
 jenkins_node_host: "{{ ansible_default_ipv4.address }}"
-jenkins_node_java_openjdk_version: 1.8.0
 jenkins_node_path: "/jenkins"
 jenkins_node_user: "jenkins"
 jenkins_node_user_groups: "{{ jenkins_node_user }},wheel"
 jenkins_node_port: 22
 jenkins_node_master_ca_cert: ""
+jenkins_node_openjdk_major_version: "11"
+jenkins_node_openjdk_full_version: "latest"
