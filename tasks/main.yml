@@ -84,6 +84,14 @@
     line: "1:java-{{ jenkins_node_openjdk_major_version }}-openjdk-*"
   when: jenkins_node_openjdk_full_version != "latest"
 
+# Other roles may install other versions of Java. This makes the default java executable point to the desired one here.
+- name: switch to java {{ jenkins_node_openjdk_major_version }}
+  become: yes
+  alternatives:
+    name: java
+    link: /usr/bin/java
+    path: /usr/lib/jvm/jre-{{ jenkins_node_openjdk_major_version }}-openjdk/bin/java
+
 - name: install python-jenkins
   become: yes
   pip:
