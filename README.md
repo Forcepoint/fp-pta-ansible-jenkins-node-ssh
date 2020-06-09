@@ -4,6 +4,8 @@ Setup the host as a Jenkins SSH node and connect the Jenkins master to it.
 This is the preferred method of connecting a node to the Jenkins master as the master initiates the connections
 and can reconnect easily.
 
+For information about PTA and how to use it with this Ansible role please visit https://github.com/Forcepoint/fp-pta-overview/blob/master/README.md
+
 ## Requirements
 
 The Jenkins master already exists, basic setup is complete, and the credential object for SSH node connections exists.
