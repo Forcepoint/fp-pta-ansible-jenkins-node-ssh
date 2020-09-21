@@ -109,6 +109,7 @@ if __name__ == "__main__":
                 customca = infile.read()
             with open(cafile, 'ab') as outfile:
                 outfile.write(customca)
+            test = requests.get(args.url)
 
     # Delete the node if required.
     if args.force and server.node_exists(args.name):
