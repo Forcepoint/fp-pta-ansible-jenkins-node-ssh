@@ -105,6 +105,10 @@ if __name__ == "__main__":
             test = requests.get(args.url)
         except requests.exceptions.SSLError as err:
             cafile = certifi.where()
+            if args.verbose:
+                print "CERT {}".format(args.ca_cert)
+                print "CERTIFI {}".format(cafile)
+                print
             with open(args.ca_cert, 'rb') as infile:
                 customca = infile.read()
             with open(cafile, 'ab') as outfile:
