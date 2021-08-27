@@ -19,14 +19,16 @@
     generate_ssh_key: yes
     ssh_key_bits: 4096
     groups: "{{ jenkins_node_user_groups }}"
+    append: yes
     password: "{{ unvaulted_jenkins_node_user_password | password_hash('sha512') }}"
 
-- name: add {{ ansible_user_id }} user to {{ jenkins_node_user }} group
+- name: add ansible_user to jenkins_user group
   become: yes
   user:
     name: "{{ ansible_user_id }}"
     groups: "{{ jenkins_node_user }}"
     append: yes
+  when: ansible_user_id != jenkins_node_user
 
 - name: create jenkins folder for workspaces
   become: yes
