@@ -31,7 +31,8 @@
   when: ansible_user_id != jenkins_node_user
 
 - name: install pip from helper script
-  remote_user: "{{ jenkins_node_user }}"
+  become: yes
+  become_user: "{{ jenkins_node_user }}"
   ansible.builtin.shell: python /tmp/get-pip.py
   when: ansible_distribution == "CentOS" and ansible_distribution_major_version <= '7'
 
