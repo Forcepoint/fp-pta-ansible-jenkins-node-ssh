@@ -58,9 +58,7 @@
 # https://access.redhat.com/solutions/98873
 - name: install versionlock
   become: yes
-  yum:
-    name: yum-plugin-versionlock
-    state: latest
+  shell: yum install yum-plugin-versionlock -y
   when: jenkins_node_openjdk_full_version != "latest"
 
 # Gotta let the package install/upgrade/downgrade if needed as the target version may have changed.
