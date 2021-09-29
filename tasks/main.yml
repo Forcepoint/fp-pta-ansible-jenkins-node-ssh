@@ -30,6 +30,10 @@
     append: yes
   when: ansible_user_id != jenkins_node_user
 
+- name: install pip from helper script
+  ansible.builtin.shell: python /tmp/get-pip.py
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version <= '7'
+
 - name: create jenkins folder for workspaces
   become: yes
   file:
@@ -95,10 +99,10 @@
     path: /usr/lib/jvm/jre-{{ jenkins_node_openjdk_major_version }}-openjdk/bin/java
 
 - name: install python-jenkins
-  become: yes
   pip:
     name: python-jenkins
     state: latest
+    umask: "0022"
 
 - name: copy node creation script
   become: yes
