@@ -101,12 +101,13 @@
     path: /usr/lib/jvm/jre-{{ jenkins_node_openjdk_major_version }}-openjdk/bin/java
 
 - name: install python-jenkins
+  become: yes
+  become_user: "{{ jenkins_node_user }}"
   pip:
     name:
     - python-jenkins
     - certifi
     state: latest
-    umask: "0022"
 
 - name: copy node creation script
   become: yes
