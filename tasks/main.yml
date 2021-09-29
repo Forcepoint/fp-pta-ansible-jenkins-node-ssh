@@ -107,6 +107,7 @@
     name:
     - python-jenkins
     - certifi
+    - pbr
     state: latest
     executable: ~/.local/bin/pip
 
