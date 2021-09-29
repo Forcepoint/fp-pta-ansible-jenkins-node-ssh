@@ -108,6 +108,7 @@
     - python-jenkins
     - certifi
     state: latest
+    executabe: ~/.local/bin/pip
 
 - name: copy node creation script
   become: yes
