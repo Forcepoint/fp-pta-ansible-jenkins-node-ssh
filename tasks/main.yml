@@ -31,6 +31,10 @@
   when: ansible_user_id != jenkins_node_user
 
 - name: install pip from helper script
+  become: yes
+  become_method: su
+  become_user: "{{ jenkins_node_user }}"
+  become_password: "{{ unvaulted_jenkins_node_user_password }}"
   ansible.builtin.shell: python /tmp/get-pip.py
   when: ansible_distribution == "CentOS" and ansible_distribution_major_version <= '7'
 
@@ -116,7 +120,6 @@
     mode: 0744
 
 - name: add the node to the jenkins master
-  become: yes
   command: python {{ jenkins_node_path }}/create_jenkins_node_ssh.py "{{ jenkins_node_master_url }}" "{{ jenkins_node_master_user }}" "{{ jenkins_node_master_password }}" "{{ jenkins_node_credential }}" "{{ jenkins_node_name }}" "{{ jenkins_node_description }}" "{{ jenkins_node_labels }}" "{{ jenkins_node_host }}" "--num-executors={{ jenkins_node_executors }}" "--path={{ jenkins_node_path }}" "--port={{ jenkins_node_port }}" "--ca-cert={{ jenkins_node_master_ca_cert }}"
   # As of 2017-10-2, Ansible doesn't keep track what values were vaulted. Without no_log, an error would
   # cause the command to be displayed, which is not desirable.
