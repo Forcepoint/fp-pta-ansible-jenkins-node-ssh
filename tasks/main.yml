@@ -100,7 +100,9 @@
 
 - name: install python-jenkins
   pip:
-    name: python-jenkins
+    name:
+    - python-jenkins
+    - certifi
     state: latest
     umask: "0022"
 
