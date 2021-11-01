@@ -30,6 +30,11 @@
     append: yes
   when: ansible_user_id != jenkins_node_user
 
+- name: enable git-lfs
+  become: yes
+  become_user: "{{ jenkins_node_user }}"
+  ansible.builtin.shell: git lfs install
+
 - name: install pip from helper script
   become: yes
   become_user: "{{ jenkins_node_user }}"
