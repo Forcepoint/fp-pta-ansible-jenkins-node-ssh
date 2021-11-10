@@ -49,22 +49,12 @@
     state: latest
     umask: "0022"
 
-- name: install pip docker-compose 1.24.1
-  become: yes
-  become_user: "{{ jenkins_node_user }}"
-  # Version 1.25.0 doesn't install with python2.
-  ansible.builtin.pip:
-    name: docker-compose==1.24.1
-    umask: "0022"
-  when: ansible_distribution == "CentOS" and ansible_distribution_major_version <= '7'
-
 - name: install pip docker-compose latest
   become: yes
   become_user: "{{ jenkins_node_user }}"
   ansible.builtin.pip:
     name: docker-compose
     umask: "0022"
-  when: ansible_distribution == "CentOS" and ansible_distribution_major_version > '7'
 
 - name: create jenkins folder for workspaces
   become: yes
