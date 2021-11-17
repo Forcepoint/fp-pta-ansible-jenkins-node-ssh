@@ -66,6 +66,8 @@
 
 - name: install pip packages
   become: yes
+  become_method: sudo
+  become_flags: '-i'
   ansible.builtin.pip:
     name:
      - setuptools
