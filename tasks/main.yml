@@ -133,6 +133,8 @@
 - name: install python-jenkins reqs
   become: yes
   become_user: "{{ jenkins_node_user }}"
+  become_method: sudo
+  become_flags: '-i'
   pip:
     name:
     - certifi
@@ -142,6 +144,8 @@
 - name: install python-jenkins
   become: yes
   become_user: "{{ jenkins_node_user }}"
+  become_method: sudo
+  become_flags: '-i'
   pip:
     name: python-jenkins
     state: latest
