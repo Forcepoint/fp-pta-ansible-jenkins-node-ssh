@@ -44,7 +44,7 @@
 - name: install dependent pip packages
   become: yes
   become_user: "{{ jenkins_node_user }}"
-  ansible.builtin.shell: pip install setuptools virtualenv -y
+  ansible.builtin.shell: ~/.local/bin/pip install setuptools virtualenv -y
 
 - name: install pip PyYAML
   become: yes
