@@ -41,11 +41,6 @@
   ansible.builtin.shell: python /tmp/get-pip.py
   when: ansible_distribution == "CentOS" and ansible_distribution_major_version <= '7'
 
-- name: add ~/.local/bin to the path
-  copy:
-    dest: /etc/profile.d/add-local-bin.sh
-    content: 'PATH=$PATH:~/.local/bin'
-
 - name: install pip packages
   become: yes
   become_user: "{{ jenkins_node_user }}"
