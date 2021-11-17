@@ -45,7 +45,7 @@
   become: yes
   become_user: "{{ jenkins_node_user }}"
   become_method: sudo
-  become_flags: -i
+  become_flags: '-i'
   ansible.builtin.pip:
     name:
      - setuptools
