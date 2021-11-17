@@ -41,6 +41,14 @@
   ansible.builtin.shell: python /tmp/get-pip.py
   when: ansible_distribution == "CentOS" and ansible_distribution_major_version <= '7'
 
+- name: install dependent pip packages
+  ansible.builtin.pip:
+    name:
+      - setuptools
+      - virtualenv
+    umask: "0022"
+    state: latest
+
 - name: install pip PyYAML
   become: yes
   become_user: "{{ jenkins_node_user }}"
