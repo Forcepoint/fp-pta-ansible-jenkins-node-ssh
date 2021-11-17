@@ -44,12 +44,7 @@
 - name: install dependent pip packages
   become: yes
   become_user: "{{ jenkins_node_user }}"
-  ansible.builtin.pip:
-    name:
-      - setuptools
-      - virtualenv
-    umask: "0022"
-    state: latest
+  ansible.builtin.shell: pip install setuptools virtualenv -y
 
 - name: install pip PyYAML
   become: yes
