@@ -37,6 +37,8 @@ Make sure you get those passwords vaulted so they're not in plain text!
   that the jenkins master role uses.
 * jenkins_node_openjdk_full_version: The full version of OpenJDK to install. Defaults to "latest" but you can provide a
   specific version if you like. EX: "11.0.6.10"
+* jenkins_node_pip_packages: Install additional pip packages needed to fulfill the purpose assigned
+  for this node.
 
 ## Dependencies
 
@@ -46,13 +48,21 @@ None
 
 Again, make sure you get those passwords vaulted so they're not in plain text!
 
-      hosts: docker01
+      hosts: Docker01
       vars:
         jenkins_node_master_address: https://jenkins.COMPANY.com
         jenkins_node_master_user: admin
         jenkins_node_master_password: Password1
         jenkins_node_credential: jenkins-nodes-ssh
         jenkins_node_user_password: Password2
+        jenkins_node_user_groups: "{{ jenkins_node_user }},wheel,docker"
+        jenkins_node_pip_packages:
+          - wheel
+          - setuptools
+          - virtualenv
+          - docker
+          - docker-compose
+        jenkins_node_labels: "Docker01 docker linux any"
       roles:
         - role: jenkins-node-ssh
 
