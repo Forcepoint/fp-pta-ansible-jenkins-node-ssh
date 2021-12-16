@@ -3,7 +3,7 @@
 
 - name: create group
   become: yes
-  group:
+  ansible.builtin.group:
     name: "{{ jenkins_node_user }}"
     state: present
 
@@ -13,7 +13,7 @@
     # For whatever reason, passing a vaulted variable into the password_hash filter causes ansible to throw an error.
     # You must assign the vaulted variable to another variable first, then it will work properly with password_hash.
     unvaulted_jenkins_node_user_password: "{{ jenkins_node_user_password }}"
-  user:
+  ansible.builtin.user:
     name: "{{ jenkins_node_user }}"
     shell: /bin/bash
     generate_ssh_key: yes
@@ -24,7 +24,7 @@
 
 - name: add ansible_user to jenkins_user group
   become: yes
-  user:
+  ansible.builtin.user:
     name: "{{ ansible_user_id }}"
     groups: "{{ jenkins_node_user }}"
     append: yes
@@ -57,7 +57,7 @@
 
 - name: create jenkins folder for workspaces
   become: yes
-  file:
+  ansible.builtin.file:
     path: "{{ jenkins_node_path }}"
     owner: "{{ jenkins_node_user }}"
     group: "{{ jenkins_node_user }}"
@@ -79,7 +79,7 @@
 
 - name: install openjdk{{ jenkins_node_openjdk_major_version }} latest
   become: yes
-  yum:
+  ansible.builtin.yum:
     # https://www.digitalocean.com/community/tutorials/how-to-install-java-on-centos-and-fedora
     # To install the JDK, you have to install java-###-openjdk-devel. Without the devel, you just get the JRE,
     # despite the VERY misleading name.
@@ -90,14 +90,14 @@
 # https://access.redhat.com/solutions/98873
 - name: install versionlock
   become: yes
-  command: yum install yum-plugin-versionlock -y
+  ansible.builtin.command: yum install yum-plugin-versionlock -y
   when: jenkins_node_openjdk_full_version != "latest"
 
 # Gotta let the package install/upgrade/downgrade if needed as the target version may have changed.
 # The version lock is needed soley so a system wide yum update won't change the version of java.
 - name: remove the version lock
   become: yes
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/yum/pluginconf.d/versionlock.list
     state: absent
     line: "1:java-{{ jenkins_node_openjdk_major_version }}-openjdk-*"
@@ -105,7 +105,7 @@
 
 - name: install locked java version
   become: yes
-  yum:
+  ansible.builtin.yum:
     name:
       - "java-{{ jenkins_node_openjdk_major_version }}-openjdk-{{ jenkins_node_openjdk_full_version }}"
       - "java-{{ jenkins_node_openjdk_major_version }}-openjdk-headless-{{ jenkins_node_openjdk_full_version }}"
@@ -116,7 +116,7 @@
 
 - name: add the version lock back in
   become: yes
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/yum/pluginconf.d/versionlock.list
     state: present
     line: "1:java-{{ jenkins_node_openjdk_major_version }}-openjdk-*"
@@ -125,17 +125,26 @@
 # Other roles may install other versions of Java. This makes the default java executable point to the desired one here.
 - name: switch to java {{ jenkins_node_openjdk_major_version }}
   become: yes
-  alternatives:
+  community.general.alternatives:
     name: java
     link: /usr/bin/java
     path: /usr/lib/jvm/jre-{{ jenkins_node_openjdk_major_version }}-openjdk/bin/java
+
+- name: install other pip packages
+  become: yes
+  become_user: "{{ jenkins_node_user }}"
+  become_method: sudo
+  become_flags: '-i'
+  ansible.builtin.pip:
+    name: "{{ jenkins_node_pip_packages }}"
+    state: latest
 
 - name: install python-jenkins reqs
   become: yes
   become_user: "{{ jenkins_node_user }}"
   become_method: sudo
   become_flags: '-i'
-  pip:
+  ansible.builtin.pip:
     name:
     - certifi
     - pbr
@@ -146,23 +155,34 @@
   become_user: "{{ jenkins_node_user }}"
   become_method: sudo
   become_flags: '-i'
-  pip:
+  ansible.builtin.pip:
     name: python-jenkins
     state: latest
 
-- name: copy node creation script
+- name: copy node creation script (py27)
   become: yes
-  copy:
-    src: create_jenkins_node_ssh.py
+  ansible.builtin.copy:
+    src: create_jenkins_node_ssh_py27.py
     dest: "{{ jenkins_node_path }}/create_jenkins_node_ssh.py"
     owner: "{{ jenkins_node_user }}"
     group: "{{ jenkins_node_user }}"
     mode: 0744
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version <= '7'
+
+- name: copy node creation script (py3)
+  become: yes
+  ansible.builtin.copy:
+    src: create_jenkins_node_ssh_py3.py
+    dest: "{{ jenkins_node_path }}/create_jenkins_node_ssh.py"
+    owner: "{{ jenkins_node_user }}"
+    group: "{{ jenkins_node_user }}"
+    mode: 0744
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version > '7'
 
 - name: add the node to the jenkins master
   become: yes
   become_user: "{{ jenkins_node_user }}"
-  command: python {{ jenkins_node_path }}/create_jenkins_node_ssh.py "{{ jenkins_node_master_url }}" "{{ jenkins_node_master_user }}" "{{ jenkins_node_master_password }}" "{{ jenkins_node_credential }}" "{{ jenkins_node_name }}" "{{ jenkins_node_description }}" "{{ jenkins_node_labels }}" "{{ jenkins_node_host }}" "--num-executors={{ jenkins_node_executors }}" "--path={{ jenkins_node_path }}" "--port={{ jenkins_node_port }}" "--ca-cert={{ jenkins_node_master_ca_cert }}"
+  ansible.builtin.command: python {{ jenkins_node_path }}/create_jenkins_node_ssh.py "{{ jenkins_node_master_url }}" "{{ jenkins_node_master_user }}" "{{ jenkins_node_master_password }}" "{{ jenkins_node_credential }}" "{{ jenkins_node_name }}" "{{ jenkins_node_description }}" "{{ jenkins_node_labels }}" "{{ jenkins_node_host }}" "--num-executors={{ jenkins_node_executors }}" "--path={{ jenkins_node_path }}" "--port={{ jenkins_node_port }}" "--ca-cert={{ jenkins_node_master_ca_cert }}" "-v"
   # As of 2017-10-2, Ansible doesn't keep track what values were vaulted. Without no_log, an error would
   # cause the command to be displayed, which is not desirable.
   # 2019-12-02: You have two options. Use 'no_log: yes' or use a Jenkins credential object so Jenkins masks the output. I have opted for Jenkins to mask the output
