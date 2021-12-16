@@ -159,14 +159,25 @@
     name: python-jenkins
     state: latest
 
-- name: copy node creation script
+- name: copy node creation script (py27)
   become: yes
   ansible.builtin.copy:
-    src: create_jenkins_node_ssh.py
+    src: create_jenkins_node_ssh_py27.py
     dest: "{{ jenkins_node_path }}/create_jenkins_node_ssh.py"
     owner: "{{ jenkins_node_user }}"
     group: "{{ jenkins_node_user }}"
     mode: 0744
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version <= '7'
+
+- name: copy node creation script (py3)
+  become: yes
+  ansible.builtin.copy:
+    src: create_jenkins_node_ssh_py3.py
+    dest: "{{ jenkins_node_path }}/create_jenkins_node_ssh.py"
+    owner: "{{ jenkins_node_user }}"
+    group: "{{ jenkins_node_user }}"
+    mode: 0744
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version > '7'
 
 - name: add the node to the jenkins master
   become: yes
