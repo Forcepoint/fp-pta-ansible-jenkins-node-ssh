@@ -198,7 +198,7 @@ if __name__ == "__main__":
     set_element_text(element_strategy, "requireInitialManualTrust", args.manual_verify)
 
     # Double check that the changes were made.
-    str_xml_node_config_mod = ElementTree.tostring(tree_node_config, encoding='utf-8')
+    str_xml_node_config_mod = ElementTree.tostring(tree_node_config, encoding='utf-8').decode('utf-8')
     if args.verbose:
         print("AFTER MOD")
         print("----------")
