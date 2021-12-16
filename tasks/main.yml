@@ -182,7 +182,7 @@
 - name: add the node to the jenkins master
   become: yes
   become_user: "{{ jenkins_node_user }}"
-  ansible.builtin.command: python {{ jenkins_node_path }}/create_jenkins_node_ssh.py "{{ jenkins_node_master_url }}" "{{ jenkins_node_master_user }}" "{{ jenkins_node_master_password }}" "{{ jenkins_node_credential }}" "{{ jenkins_node_name }}" "{{ jenkins_node_description }}" "{{ jenkins_node_labels }}" "{{ jenkins_node_host }}" "--num-executors={{ jenkins_node_executors }}" "--path={{ jenkins_node_path }}" "--port={{ jenkins_node_port }}" "--ca-cert={{ jenkins_node_master_ca_cert }} -v"
+  ansible.builtin.command: python {{ jenkins_node_path }}/create_jenkins_node_ssh.py "{{ jenkins_node_master_url }}" "{{ jenkins_node_master_user }}" "{{ jenkins_node_master_password }}" "{{ jenkins_node_credential }}" "{{ jenkins_node_name }}" "{{ jenkins_node_description }}" "{{ jenkins_node_labels }}" "{{ jenkins_node_host }}" "--num-executors={{ jenkins_node_executors }}" "--path={{ jenkins_node_path }}" "--port={{ jenkins_node_port }}" "--ca-cert={{ jenkins_node_master_ca_cert }}" "-v"
   # As of 2017-10-2, Ansible doesn't keep track what values were vaulted. Without no_log, an error would
   # cause the command to be displayed, which is not desirable.
   # 2019-12-02: You have two options. Use 'no_log: yes' or use a Jenkins credential object so Jenkins masks the output. I have opted for Jenkins to mask the output
