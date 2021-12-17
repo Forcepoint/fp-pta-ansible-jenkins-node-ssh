@@ -138,6 +138,7 @@
   ansible.builtin.pip:
     name: "{{ jenkins_node_pip_packages }}"
     state: latest
+  when: jenkins_node_pip_packages is defined
 
 - name: install python-jenkins reqs
   become: yes
