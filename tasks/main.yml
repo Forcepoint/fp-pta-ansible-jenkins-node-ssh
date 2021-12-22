@@ -136,8 +136,9 @@
   become_method: sudo
   become_flags: '-i'
   ansible.builtin.pip:
-    name: "{{ jenkins_node_pip_packages }}"
+    name: "{{ item }}"
     state: latest
+  loop: jenkins_node_pip_packages
   when: jenkins_node_pip_packages is defined
 
 - name: install python-jenkins reqs
