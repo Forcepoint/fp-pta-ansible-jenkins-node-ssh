@@ -61,7 +61,6 @@
      - setuptools
      - virtualenv
      - PyYAML
-     - docker-compose
     state: latest
     umask: "0022"
 
