@@ -41,7 +41,17 @@
   ansible.builtin.shell: python /tmp/get-pip.py
   when: ansible_distribution == "CentOS" and ansible_distribution_major_version <= '7'
 
-- name: install pip packages
+- name: install pip wheel
+  become: yes
+  become_user: "{{ jenkins_node_user }}"
+  become_method: sudo
+  become_flags: '-i'
+  ansible.builtin.pip:
+    name: wheel
+    state: latest
+    umask: "0022"
+
+- name: install more pip packages
   become: yes
   become_user: "{{ jenkins_node_user }}"
   become_method: sudo
@@ -63,19 +73,6 @@
     group: "{{ jenkins_node_user }}"
     mode: 0774
     state: directory
-
-- name: install pip packages
-  become: yes
-  become_method: sudo
-  become_flags: '-i'
-  ansible.builtin.pip:
-    name:
-     - setuptools
-     - virtualenv
-     - PyYAML
-     - docker-compose
-    state: latest
-    umask: "0022"
 
 - name: install openjdk{{ jenkins_node_openjdk_major_version }} latest
   become: yes
@@ -130,15 +127,14 @@
     link: /usr/bin/java
     path: /usr/lib/jvm/jre-{{ jenkins_node_openjdk_major_version }}-openjdk/bin/java
 
-- name: install other pip packages
+- name: install additional pip packages
   become: yes
   become_user: "{{ jenkins_node_user }}"
   become_method: sudo
   become_flags: '-i'
   ansible.builtin.pip:
-    name: "{{ item }}"
+    name: "{{ jenkins_node_pip_packages }}"
     state: latest
-  loop: jenkins_node_pip_packages
   when: jenkins_node_pip_packages is defined
 
 - name: install python-jenkins reqs
